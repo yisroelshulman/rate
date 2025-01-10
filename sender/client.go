@@ -33,5 +33,4 @@ func (c *Client) RequestTest(req *http.Request) {
 	if err != nil {
 		return
 	}
-	return
 }
