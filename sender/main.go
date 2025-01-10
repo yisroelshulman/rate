@@ -8,9 +8,9 @@ import (
 
 func main() {
 
-	client := NewClient(1000, time.Second*5, time.Second)
+	client := NewClient(100, time.Second*5, time.Second)
 	for i := 0; i < 100000; i++ {
-		go client.LimitedRequestsTest()
+		go client.LimitedRequests()
 	}
 
 	time.Sleep(time.Second * 100)
@@ -33,7 +33,7 @@ func UnlimitedRequests() {
 	}
 }
 
-func (c *Client) LimitedRequestsTest() {
+func (c *Client) LimitedRequests() {
 	url := "http://localhost:9578/healthz"
 	for {
 		req, err := http.NewRequest("GET", url, nil)
@@ -42,6 +42,6 @@ func (c *Client) LimitedRequestsTest() {
 			return
 		}
 
-		c.RequestTest(req)
+		c.DoRequest(req)
 	}
 }

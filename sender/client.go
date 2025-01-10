@@ -7,24 +7,22 @@ import (
 )
 
 type Client struct {
-	Limiter    *limiter
-	HttpClient http.Client
+	ClientLimiter *Limiter
+	HttpClient    http.Client
 }
 
 func NewClient(requestsAllowed int, timeout, interval time.Duration) *Client {
 	client := &Client{
-		Limiter: NewLimiter(requestsAllowed, interval),
+		ClientLimiter: NewLimiter(requestsAllowed, interval),
 		HttpClient: http.Client{
 			Timeout: timeout,
 		},
 	}
-
 	return client
-
 }
 
-func (c *Client) RequestTest(req *http.Request) {
-	err := c.Limiter.Wait(nil)
+func (c *Client) DoRequest(req *http.Request) {
+	err := c.ClientLimiter.Wait(nil)
 	if err != nil {
 		fmt.Printf("failed")
 		return

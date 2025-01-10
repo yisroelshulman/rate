@@ -7,15 +7,15 @@ import (
 	"time"
 )
 
-type limiter struct {
+type Limiter struct {
 	mu    *sync.Mutex
 	Count int
 	Limit int
 	Rate  time.Duration
 }
 
-func NewLimiter(limit int, rate time.Duration) *limiter {
-	l := &limiter{
+func NewLimiter(limit int, rate time.Duration) *Limiter {
+	l := &Limiter{
 		mu:    &sync.Mutex{},
 		Count: 0,
 		Limit: limit,
@@ -25,21 +25,21 @@ func NewLimiter(limit int, rate time.Duration) *limiter {
 	return l
 }
 
-func (l *limiter) resetRate(rate time.Duration) {
+func (l *Limiter) resetRate(rate time.Duration) {
 	ticker := time.NewTicker(rate)
 	for range ticker.C {
 		l.reset()
 	}
 }
 
-func (l *limiter) reset() {
+func (l *Limiter) reset() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	fmt.Printf("reset with val: %d\n", l.Count)
 	l.Count = 0
 }
 
-func (l *limiter) Wait(timeout *time.Duration) error {
+func (l *Limiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
 		return l.waitTime(*timeout)
 	}
@@ -54,7 +54,7 @@ func (l *limiter) Wait(timeout *time.Duration) error {
 	}
 }
 
-func (l *limiter) waitTime(timeout time.Duration) error {
+func (l *Limiter) waitTime(timeout time.Duration) error {
 	to := false
 	go timeOut(&to, timeout)
 	for to {
