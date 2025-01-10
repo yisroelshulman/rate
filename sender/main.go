@@ -8,17 +8,13 @@ import (
 
 func main() {
 
-	client := NewClient(50, time.Second*5, time.Second)
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
-	go client.LimitedRequests()
+	client := NewClient(1000, time.Second*5, time.Second)
+	for i := 0; i < 100000; i++ {
+		go client.LimitedRequestsTest()
+	}
 
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 100)
+
 }
 
 func UnlimitedRequests() {
@@ -37,7 +33,7 @@ func UnlimitedRequests() {
 	}
 }
 
-func (c *Client) LimitedRequests() {
+func (c *Client) LimitedRequestsTest() {
 	url := "http://localhost:9578/healthz"
 	for {
 		req, err := http.NewRequest("GET", url, nil)
@@ -45,6 +41,7 @@ func (c *Client) LimitedRequests() {
 			fmt.Printf("failed with: %v\n", err)
 			return
 		}
-		c.Request(req)
+
+		c.RequestTest(req)
 	}
 }
