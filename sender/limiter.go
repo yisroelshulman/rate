@@ -66,7 +66,7 @@ func (l *limiter) waitTime(timeout time.Duration) error {
 		}
 		l.mu.Unlock()
 	}
-	return errors.New("timed out")
+	return errors.New("limiter timed out")
 }
 
 func timeOut(timedOut *bool, to time.Duration) {
