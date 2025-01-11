@@ -8,12 +8,12 @@ import (
 
 func main() {
 
-	client := NewClient(100, time.Second*5, time.Second)
-	for i := 0; i < 100000; i++ {
-		go client.LimitedRequests()
+	client := NewClient(5, 100, time.Second*5, time.Second)
+	for i := 0; i < 10; i++ {
+		go client.LimitedRequests(i)
 	}
 
-	time.Sleep(time.Second * 100)
+	time.Sleep(time.Second * 5)
 
 }
 
@@ -33,15 +33,15 @@ func UnlimitedRequests() {
 	}
 }
 
-func (c *Client) LimitedRequests() {
+func (c *Client) LimitedRequests(threadNum int) {
 	url := "http://localhost:9578/healthz"
-	for {
+	for i := 0; i < 10; i++ {
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			fmt.Printf("failed with: %v\n", err)
 			return
 		}
 
-		c.DoRequest(req)
+		c.DoRequest(req, threadNum, i)
 	}
 }
