@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -23,54 +22,36 @@ func (l *LimiterTimedOut) Error() string {
 }
 
 type Limiter struct {
-	mu     *sync.Mutex
-	Count  int
-	Limit  int
-	Rate   time.Duration
-	Buffer *buffer
+	limit      int
+	rate       time.Duration
+	timeStamps []time.Time
+	buffer     *buffer
 }
 
 func NewLimiter(limit, capacity int, rate time.Duration) *Limiter {
 	l := &Limiter{
-		mu:     &sync.Mutex{},
-		Count:  0,
-		Limit:  limit,
-		Rate:   rate,
-		Buffer: newBuffer(capacity),
+		limit:      limit,
+		rate:       rate,
+		timeStamps: make([]time.Time, limit),
+		buffer:     newBuffer(capacity),
 	}
-	l.startLimiter(rate)
+	go l.processLoop()
 	return l
 }
 
-func (l *Limiter) startLimiter(rate time.Duration) {
-	go l.resetLoop(rate)
-	go l.processLoop()
-}
-
-func (l *Limiter) resetLoop(rate time.Duration) {
-	ticker := time.NewTicker(rate)
-	for range ticker.C {
-		l.reset()
-	}
-}
-
-func (l *Limiter) reset() {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	fmt.Printf("reset with val: %d\n", l.Count)
-	l.Count = 0
-}
-
 func (l *Limiter) processLoop() {
+	index := 0
 	for {
-		l.mu.Lock()
-		if l.Count < l.Limit {
-			if ok := l.Buffer.remove(); ok {
-				l.Count++
+		if time.Since(l.timeStamps[index]) > l.rate {
+			if ok := l.buffer.remove(); !ok {
+				continue
 			}
-
+			fmt.Println(time.Now())
+			l.timeStamps[index] = time.Now()
+			index = (index + 1) % l.limit
+			continue
 		}
-		l.mu.Unlock()
+		time.Sleep(l.rate - time.Since(l.timeStamps[index]))
 	}
 }
 
@@ -79,7 +60,7 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 		return l.waitTime(*timeout)
 	}
 	waiting := true
-	if ok := l.Buffer.add(&waiting); !ok {
+	if ok, _ := l.buffer.add(&waiting); !ok {
 		return &LimiterFull{message: "buffer full"}
 	}
 	for {
@@ -92,7 +73,7 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 func (l *Limiter) waitTime(timeout time.Duration) error {
 	run := true
 	waiting := true
-	if ok := l.Buffer.add(&waiting); !ok {
+	if ok, _ := l.buffer.add(&waiting); !ok {
 		return &LimiterFull{message: "buffer full"}
 	}
 	go timeOut(&run, timeout)

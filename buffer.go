@@ -25,16 +25,16 @@ func newBuffer(capacity int) *buffer {
 	return b
 }
 
-func (b *buffer) add(lock *bool) bool {
+func (b *buffer) add(lock *bool) (bool, int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.size == b.capacity {
-		return false
+		return false, -1
 	}
 	b.buffer[b.insertAt] = lock
 	b.insertAt = (b.insertAt + 1) % b.capacity
 	b.size++
-	return true
+	return true, b.insertAt - 1
 }
 
 func (b *buffer) remove() bool {
