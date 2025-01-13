@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// An UnbufferdLimiter is a limiter without an internal buffer that limits permission to a given
+// An UnbufferdLimiter is a limiter without an internal buffer that limits permission at a given
 // rate and time interval
 type UnbufferedLimiter struct {
 	mu         *sync.Mutex
@@ -16,12 +16,12 @@ type UnbufferedLimiter struct {
 
 // NewUnbufferedLimiter returns a new UnbufferedLimiter given a rate and a time interval.
 //
-// The limiter will limit permissions at the provided rate for the given time interval.
+// The Unbufferedlimiter will limit permissions at the provided rate for the given time interval.
 //
 // If the rate received = 0 the rate will default to 1 and if the received interval = 0 it will be
-// set to 1 millisecond. This is because the limiter must have a non-zero rate and interval for
-// simplicity and ease of use to prevent the UnbufferedLimiter from erroring and not have the
-// NewUnbufferedLimiter function return an error.
+// set to 1 millisecond. This is because the Unbufferedlimiter must have a non-zero rate and
+// interval for simplicity and ease of use to prevent the UnbufferedLimiter from erroring during use
+// and not have the NewUnbufferedLimiter function return an error.
 func NewUnbufferedLimiter(rate int, interval time.Duration) *UnbufferedLimiter {
 	if rate == 0 {
 		rate = 1
@@ -44,9 +44,9 @@ func NewUnbufferedLimiter(rate int, interval time.Duration) *UnbufferedLimiter {
 // LimiterWaitTimedOut error is returned.
 //
 // Additionally it is thread safe in the sense that the limiter will stil enforce the rate
-// regardless of how many threads share the same limiter. However, there is no guarantee as to the
-// order in which the limiter will grant permission or that permission will ever be granted if
-// there are a large number of requsts (request starvation).
+// regardless of how many threads share the same Unbufferedlimiter. However, there is no guarantee
+// as to which order the Unbufferedlimiter will grant permission or that permission will ever be
+// granted if there are a large number of requsts (request starvation).
 func (l *UnbufferedLimiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
 		return l.waitWithTimeout(*timeout)
@@ -73,13 +73,13 @@ func (l *UnbufferedLimiter) waitWithTimeout(timeout time.Duration) error {
 	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
 }
 
-// TryWait returns whther or not the limiter granted permission.
+// TryWait returns whther or not the Unbufferedlimiter granted permission.
 //
 // The TryWait receiver is non-blocking and returns immediately. If permission is granted the error
 // is nil. If permission is not granted a LimiterOverLimit error is returned and the time dureation
 // until the next potential approval can occur.
 //
-// TryWait is a threadsafe function allowing multiple threads to share the same limiter.
+// TryWait is a threadsafe function allowing multiple threads to share the same Unbufferedlimiter.
 func (l *UnbufferedLimiter) TryWait() (time.Duration, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
