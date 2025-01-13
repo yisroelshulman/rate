@@ -5,26 +5,26 @@ import (
 	"time"
 )
 
-type waitStat struct {
+type waitSignals struct {
 	waiting  bool
 	timedOut bool
 }
 
-type Limiter struct {
+type BufferedLimiter struct {
 	limit      int
 	rate       time.Duration
 	timeStamps []time.Time
 	buffer     *buffer
 }
 
-func NewLimiter(limit, capacity int, rate time.Duration) *Limiter {
+func NewBufferedLimiter(limit, capacity int, rate time.Duration) *BufferedLimiter {
 	if limit == 0 {
 		limit = 1
 	}
 	if capacity == 0 {
 		capacity = 1
 	}
-	l := &Limiter{
+	l := &BufferedLimiter{
 		limit:      limit,
 		rate:       rate,
 		timeStamps: make([]time.Time, limit),
@@ -34,7 +34,7 @@ func NewLimiter(limit, capacity int, rate time.Duration) *Limiter {
 	return l
 }
 
-func (l *Limiter) processLoop() {
+func (l *BufferedLimiter) processLoop() {
 	index := 0
 	for {
 		if time.Since(l.timeStamps[index]) > l.rate {
@@ -50,15 +50,15 @@ func (l *Limiter) processLoop() {
 	}
 }
 
-func (l *Limiter) Wait(timeout *time.Duration) error {
+func (l *BufferedLimiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
-		return l.waitTime(*timeout)
+		return l.waitWithTimeOut(*timeout)
 	}
-	wait := waitStat{
+	wait := waitSignals{
 		waiting: true,
 	}
 	if ok := l.buffer.add(&wait); !ok {
-		return &LimiterBufferFull{message: "buffer full"}
+		return &LimiterBufferFull{message: "permission denied: buffer full"}
 	}
 	for {
 		if !wait.waiting {
@@ -67,28 +67,21 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 	}
 }
 
-func (l *Limiter) waitTime(timeout time.Duration) error {
-	run := true
-	wait := waitStat{
-		waiting: true,
+func (l *BufferedLimiter) waitWithTimeOut(timeout time.Duration) error {
+	start := time.Now()
+	wait := waitSignals{
+		waiting:  true,
+		timedOut: false,
 	}
 	if ok := l.buffer.add(&wait); !ok {
-		return &LimiterBufferFull{message: "buffer full"}
+		return &LimiterBufferFull{message: "permission denied: buffer full"}
 	}
-	go timeOut(&run, timeout)
-	for run {
+	for time.Since(start) < timeout {
 		if !wait.waiting {
 			return nil
 		}
 	}
 	wait.timedOut = true
 	l.buffer.timedOutSignal()
-	return &LimiterWaitTimedOut{message: "timed out"}
-}
-
-func timeOut(timedOut *bool, to time.Duration) {
-	ticker := time.NewTicker(to)
-	for range ticker.C {
-		*timedOut = false
-	}
+	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
 }
