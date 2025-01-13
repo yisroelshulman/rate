@@ -5,22 +5,6 @@ import (
 	"time"
 )
 
-type LimiterFull struct {
-	message string
-}
-
-func (l *LimiterFull) Error() string {
-	return l.message
-}
-
-type LimiterTimedOut struct {
-	message string
-}
-
-func (l *LimiterTimedOut) Error() string {
-	return l.message
-}
-
 type waitStat struct {
 	waiting  bool
 	timedOut bool
@@ -34,6 +18,12 @@ type Limiter struct {
 }
 
 func NewLimiter(limit, capacity int, rate time.Duration) *Limiter {
+	if limit == 0 {
+		limit = 1
+	}
+	if capacity == 0 {
+		capacity = 1
+	}
 	l := &Limiter{
 		limit:      limit,
 		rate:       rate,
@@ -68,7 +58,7 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 		waiting: true,
 	}
 	if ok := l.buffer.add(&wait); !ok {
-		return &LimiterFull{message: "buffer full"}
+		return &LimiterBufferFull{message: "buffer full"}
 	}
 	for {
 		if !wait.waiting {
@@ -83,7 +73,7 @@ func (l *Limiter) waitTime(timeout time.Duration) error {
 		waiting: true,
 	}
 	if ok := l.buffer.add(&wait); !ok {
-		return &LimiterFull{message: "buffer full"}
+		return &LimiterBufferFull{message: "buffer full"}
 	}
 	go timeOut(&run, timeout)
 	for run {
@@ -93,7 +83,7 @@ func (l *Limiter) waitTime(timeout time.Duration) error {
 	}
 	wait.timedOut = true
 	l.buffer.timedOutSignal()
-	return &LimiterTimedOut{message: "timed out"}
+	return &LimiterWaitTimedOut{message: "timed out"}
 }
 
 func timeOut(timedOut *bool, to time.Duration) {
