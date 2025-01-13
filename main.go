@@ -3,21 +3,84 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 )
 
+type results struct {
+	mu *sync.Mutex
+	s  []string
+}
+
+var res = results{
+	mu: &sync.Mutex{},
+	s:  []string{},
+}
+
 func main() {
 
-	client := NewClient(5, 100, time.Second*5, time.Second)
-	time.Sleep(time.Second * 2)
+	/*
+		client := NewClient(5, 100, time.Second*5, time.Second)
+		time.Sleep(time.Second * 2)
 
-	for i := 0; i < 10; i++ {
-		go client.LimitedRequests(i)
+		for i := 0; i < 10; i++ {
+			go client.LimitedRequests(i)
 
+		}
+
+		time.Sleep(time.Second * 5)
+	*/
+
+	t := time.Second / 2
+
+	limit := NewLimiter(1, 10, time.Second*2)
+	go lineup(limit, nil, 1)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 2)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, &t, 3)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 4)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 5)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 6)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 7)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 8)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 9)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 10)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 11)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 12)
+	time.Sleep(time.Second / 7)
+	go lineup(limit, nil, 13)
+	time.Sleep(time.Second * 30)
+
+	for _, str := range res.s {
+		fmt.Print(str)
 	}
 
-	time.Sleep(time.Second * 5)
+}
 
+func lineup(lim *Limiter, t *time.Duration, thread int) {
+	res.mu.Lock()
+	res.s = append(res.s, fmt.Sprintf("started thread %d\n", thread))
+	res.mu.Unlock()
+	err := lim.Wait(t)
+	if err != nil {
+		res.mu.Lock()
+		res.s = append(res.s, fmt.Sprintf("error from thread %d: %v\n", thread, err))
+		res.mu.Unlock()
+		return
+	}
+	res.mu.Lock()
+	res.s = append(res.s, fmt.Sprintf("processed request from thread %d\n", thread))
+	res.mu.Unlock()
 }
 
 func UnlimitedRequests() {

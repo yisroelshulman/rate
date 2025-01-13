@@ -21,6 +21,11 @@ func (l *LimiterTimedOut) Error() string {
 	return l.message
 }
 
+type waitStat struct {
+	waiting  bool
+	timedOut bool
+}
+
 type Limiter struct {
 	limit      int
 	rate       time.Duration
@@ -59,12 +64,14 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
 		return l.waitTime(*timeout)
 	}
-	waiting := true
-	if ok, _ := l.buffer.add(&waiting); !ok {
+	wait := waitStat{
+		waiting: true,
+	}
+	if ok := l.buffer.add(&wait); !ok {
 		return &LimiterFull{message: "buffer full"}
 	}
 	for {
-		if !waiting {
+		if !wait.waiting {
 			return nil
 		}
 	}
@@ -72,16 +79,20 @@ func (l *Limiter) Wait(timeout *time.Duration) error {
 
 func (l *Limiter) waitTime(timeout time.Duration) error {
 	run := true
-	waiting := true
-	if ok, _ := l.buffer.add(&waiting); !ok {
+	wait := waitStat{
+		waiting: true,
+	}
+	if ok := l.buffer.add(&wait); !ok {
 		return &LimiterFull{message: "buffer full"}
 	}
 	go timeOut(&run, timeout)
 	for run {
-		if !waiting {
+		if !wait.waiting {
 			return nil
 		}
 	}
+	wait.timedOut = true
+	l.buffer.timedOutSignal()
 	return &LimiterTimedOut{message: "timed out"}
 }
 
