@@ -43,6 +43,7 @@ func (i *ItemWithLimiter) UseResource() error {
 }
 ```
 The Wait function takes a pointer to a time.Duration parameter which is used when we want the request to use the resource to timeout, by sending nil the request won't time out.
+
 Wait blocks until it received permission to return or errors when it times out. In the above example the Limiter.Wait won't time out.
 
 > Note: in its current form the limiter DOES NOT GURANTEE any order to which requests will receive permission to access the resource. This can lead to STARVATION and/or race conditions with unintended consiquences.
