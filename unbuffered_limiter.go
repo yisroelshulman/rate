@@ -40,13 +40,13 @@ func NewUnbufferedLimiter(rate int, interval time.Duration) *UnbufferedLimiter {
 // Wait returns when the limiter grants permission or times out.
 //
 // The Wait receiver on the UnbufferedLimiter blocks until permission is granted or the request
-// times out. When permission is grandted a nil value is returned and when the request times out a
+// times out. When permission is granted a nil value is returned and when the request times out a
 // LimiterWaitTimedOut error is returned.
 //
-// Additionally it is thread safe in the sense that the limiter will stil enforce the rate
+// Additionally it is thread safe in the sense that the limiter will still enforce the rate
 // regardless of how many threads share the same Unbufferedlimiter. However, there is no guarantee
 // as to which order the Unbufferedlimiter will grant permission or that permission will ever be
-// granted if there are a large number of requsts (request starvation).
+// granted if there are a large number of requests (request starvation).
 func (l *UnbufferedLimiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
 		return l.waitWithTimeout(*timeout)
@@ -73,10 +73,10 @@ func (l *UnbufferedLimiter) waitWithTimeout(timeout time.Duration) error {
 	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
 }
 
-// TryWait returns whther or not the Unbufferedlimiter granted permission.
+// TryWait returns whether or not the Unbufferedlimiter granted permission.
 //
 // The TryWait receiver is non-blocking and returns immediately. If permission is granted the error
-// is nil. If permission is not granted a LimiterOverLimit error is returned and the time dureation
+// is nil. If permission is not granted a LimiterOverLimit error is returned and the time duration
 // until the next potential approval can occur.
 //
 // TryWait is a threadsafe function allowing multiple threads to share the same Unbufferedlimiter.
