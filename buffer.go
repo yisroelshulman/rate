@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 type buffer struct {
 	mu       *sync.Mutex
-	buffer   []*waitSignals
+	buffer   []*permissions
 	capacity int
 	size     int
 	insertAt int
@@ -17,7 +18,7 @@ type buffer struct {
 func newBuffer(capacity int) *buffer {
 	b := &buffer{
 		mu:       &sync.Mutex{},
-		buffer:   make([]*waitSignals, capacity),
+		buffer:   make([]*permissions, capacity),
 		capacity: capacity,
 		size:     0,
 		insertAt: 0,
@@ -26,28 +27,28 @@ func newBuffer(capacity int) *buffer {
 	return b
 }
 
-func (b *buffer) add(signals *waitSignals) bool {
+func (b *buffer) add(access *permissions) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.size == b.capacity {
 		return false
 	}
-	b.buffer[b.insertAt] = signals
-	b.insertAt = incrementIndex(b.insertAt, b.capacity)
-	b.size++
-	if b.insertAt == b.removeAt && b.size != b.capacity {
+	if b.insertAt == b.removeAt && b.size > 0 {
 		b.cleanBuffer()
 	}
+	b.buffer[b.insertAt] = access
+	b.insertAt = incrementIndex(b.insertAt, b.capacity)
+	b.size++
 	return true
 }
 
 func (b *buffer) cleanBuffer() {
-	fmt.Println(">>>>> cleaning buffer")
-	buf := make([]*waitSignals, b.capacity)
+	fmt.Printf(">>>>> cleaning buffer time: %v\n", time.Now())
+	buf := make([]*permissions, b.capacity)
 	pos := b.removeAt
 	insert := 0
 	for i := 0; i < b.capacity; i++ {
-		if !b.buffer[pos].timedOut {
+		if b.buffer[pos] != nil && !b.buffer[pos].timedOut {
 			buf[insert] = b.buffer[pos]
 			insert++
 		}
@@ -68,7 +69,7 @@ func (b *buffer) remove() bool {
 		b.buffer[b.removeAt] = nil
 		b.removeAt = incrementIndex(b.removeAt, b.capacity)
 	}
-	b.buffer[b.removeAt].waiting = false
+	b.buffer[b.removeAt].granted = true
 	b.buffer[b.removeAt] = nil
 	b.removeAt = incrementIndex(b.removeAt, b.capacity)
 	b.size--
