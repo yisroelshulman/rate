@@ -8,7 +8,7 @@ import (
 
 type buffer struct {
 	mu       *sync.Mutex
-	buffer   []*permissions
+	buffer   []*permissionStatus
 	capacity int
 	size     int
 	insertAt int
@@ -18,7 +18,7 @@ type buffer struct {
 func newBuffer(capacity int) *buffer {
 	b := &buffer{
 		mu:       &sync.Mutex{},
-		buffer:   make([]*permissions, capacity),
+		buffer:   make([]*permissionStatus, capacity),
 		capacity: capacity,
 		size:     0,
 		insertAt: 0,
@@ -27,7 +27,7 @@ func newBuffer(capacity int) *buffer {
 	return b
 }
 
-func (b *buffer) add(access *permissions) bool {
+func (b *buffer) add(access *permissionStatus) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.size == b.capacity {
@@ -44,7 +44,7 @@ func (b *buffer) add(access *permissions) bool {
 
 func (b *buffer) cleanBuffer() {
 	fmt.Printf(">>>>> cleaning buffer time: %v\n", time.Now())
-	buf := make([]*permissions, b.capacity)
+	buf := make([]*permissionStatus, b.capacity)
 	pos := b.removeAt
 	insert := 0
 	for i := 0; i < b.capacity; i++ {

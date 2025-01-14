@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-type waitSignals struct {
-	waiting  bool
+type permissionStatus struct {
+	granted  bool
 	timedOut bool
 }
 
@@ -54,14 +54,14 @@ func (l *BufferedLimiter) Wait(timeout *time.Duration) error {
 	if timeout != nil {
 		return l.waitWithTimeOut(*timeout)
 	}
-	wait := waitSignals{
-		waiting: true,
+	access := permissionStatus{
+		granted: false,
 	}
-	if ok := l.buffer.add(&wait); !ok {
+	if ok := l.buffer.add(&access); !ok {
 		return &LimiterBufferFull{message: "permission denied: buffer full"}
 	}
 	for {
-		if !wait.waiting {
+		if access.granted {
 			return nil
 		}
 	}
@@ -69,19 +69,19 @@ func (l *BufferedLimiter) Wait(timeout *time.Duration) error {
 
 func (l *BufferedLimiter) waitWithTimeOut(timeout time.Duration) error {
 	start := time.Now()
-	wait := waitSignals{
-		waiting:  true,
+	access := permissionStatus{
+		granted:  false,
 		timedOut: false,
 	}
-	if ok := l.buffer.add(&wait); !ok {
+	if ok := l.buffer.add(&access); !ok {
 		return &LimiterBufferFull{message: "permission denied: buffer full"}
 	}
 	for time.Since(start) < timeout {
-		if !wait.waiting {
+		if access.granted {
 			return nil
 		}
 	}
-	wait.timedOut = true
+	access.timedOut = true
 	l.buffer.timedOutSignal()
 	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
 }
