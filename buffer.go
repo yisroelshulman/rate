@@ -88,3 +88,8 @@ func (b *buffer) timedOutSignal() {
 	defer b.mu.Unlock()
 	b.size--
 }
+
+// increments an array index and wraps around to prevent index out of bounds
+func incrementIndex(index, capacity int) int {
+	return (index + 1) % capacity
+}
