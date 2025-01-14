@@ -18,15 +18,15 @@ type UnbufferedLimiter struct {
 //
 // The Unbufferedlimiter will limit permissions at the provided rate for the given time interval.
 //
-// If the rate received = 0 the rate will default to 1 and if the received interval = 0 it will be
+// If the rate received <= 0 the rate will default to 1 and if the received interval <= 0 it will be
 // set to 1 millisecond. This is because the Unbufferedlimiter must have a non-zero rate and
 // interval for simplicity and ease of use to prevent the UnbufferedLimiter from erroring during use
 // and not have the NewUnbufferedLimiter function return an error.
 func NewUnbufferedLimiter(rate int, interval time.Duration) *UnbufferedLimiter {
-	if rate == 0 {
+	if rate <= 0 {
 		rate = 1
 	}
-	if interval == 0 {
+	if interval <= 0 {
 		interval = time.Millisecond
 	}
 	return &UnbufferedLimiter{
