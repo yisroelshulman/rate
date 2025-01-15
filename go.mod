@@ -1,3 +1,3 @@
-module github.com/yisroelshulman/request_rate_limiter
+module github.com/yisroelshulman/rate
 
 go 1.22.0
