@@ -4,6 +4,14 @@ import (
 	"sync"
 )
 
+// permissionStatus is used to send signals between the limiter and the buffer.
+//
+// The limiter signals when the request times out and the buffer signals when permission is granted.
+type permissionStatus struct {
+	granted  bool
+	timedOut bool
+}
+
 // a buffer for the BufferedLimiter to keep track of the requests waiting for approval.
 type buffer struct {
 	mu       *sync.Mutex

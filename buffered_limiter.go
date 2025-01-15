@@ -4,14 +4,6 @@ import (
 	"time"
 )
 
-// permissionStatus is used to send signals between the limiter and the buffer.
-//
-// The limiter signals when the request times out and the buffer signals when permission is granted.
-type permissionStatus struct {
-	granted  bool
-	timedOut bool
-}
-
 // A BufferedLimiter is a limiter with an internal buffer that limits permissions at a given rate
 // and time interval
 type BufferedLimiter struct {
