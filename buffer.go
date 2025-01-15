@@ -79,7 +79,7 @@ func (b *buffer) remove() bool {
 	if b.size == 0 {
 		return false
 	}
-	for b.buffer[b.removeAt] == nil || b.buffer[b.removeAt].timedOut { // advance to the next requester
+	for b.buffer[b.removeAt].timedOut { // advance to the next requester
 		b.buffer[b.removeAt] = nil
 		b.removeAt = incrementIndex(b.removeAt, b.capacity)
 	}
