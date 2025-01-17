@@ -68,6 +68,10 @@ func (l *UnbufferedLimiter) waitWithTimeout(timeout time.Duration) error {
 		if err == nil {
 			return nil
 		}
+		if (time.Since(start) + remaining) > timeout {
+			time.Sleep(timeout - time.Since(start))
+			break
+		}
 		time.Sleep(remaining)
 	}
 	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
