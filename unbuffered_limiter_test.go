@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestWait(t *testing.T) {
+func TestUnbufferedWait(t *testing.T) {
 	tests := []struct {
 		name        string
 		limiter     *UnbufferedLimiter
@@ -73,7 +73,7 @@ func TestWait(t *testing.T) {
 	}
 }
 
-func TestWaitWithTimeout(t *testing.T) {
+func TestUnbufferedWaitWithTimeout(t *testing.T) {
 	tests := []struct {
 		name     string
 		limiter  *UnbufferedLimiter
@@ -113,7 +113,7 @@ func TestWaitWithTimeout(t *testing.T) {
 	}
 }
 
-func TestTryWait(t *testing.T) {
+func TestUnbufferedTryWait(t *testing.T) {
 	tests := []struct {
 		name         string
 		limiter      *UnbufferedLimiter
