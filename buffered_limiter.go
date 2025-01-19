@@ -49,7 +49,7 @@ func (l *BufferedLimiter) permissionApprovalLoop() {
 	index := 0
 	for {
 		if time.Since(l.timeStamps[index]) > l.interval {
-			if ok := l.buffer.remove(); !ok { // rate exceeded
+			if ok := l.buffer.remove(); !ok { // buffer empty
 				continue
 			}
 			l.timeStamps[index] = time.Now()
