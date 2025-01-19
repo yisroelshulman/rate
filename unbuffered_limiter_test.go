@@ -78,21 +78,21 @@ func TestUnbufferedWaitWithTimeout(t *testing.T) {
 		name     string
 		limiter  *UnbufferedLimiter
 		count    int
-		timeOuts []time.Duration
+		timeouts []time.Duration
 		wantErr  []bool
 	}{
 		{
 			name:     "Single time out",
 			limiter:  NewUnbufferedLimiter(1, time.Second*2),
 			count:    2,
-			timeOuts: []time.Duration{0, time.Second * 1},
+			timeouts: []time.Duration{0, time.Second * 1},
 			wantErr:  []bool{false, true},
 		},
 		{
 			name:     "Multiple time outs with no time out at the end",
 			limiter:  NewUnbufferedLimiter(3, time.Second*3),
 			count:    6,
-			timeOuts: []time.Duration{0, 0, 0, time.Second, time.Second, time.Second * 2},
+			timeouts: []time.Duration{0, 0, 0, time.Second, time.Second, time.Second * 2},
 			wantErr:  []bool{false, false, false, true, true, false},
 		},
 	}
@@ -100,7 +100,7 @@ func TestUnbufferedWaitWithTimeout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for i := 0; i < tt.count; i++ {
-				to := &tt.timeOuts[i]
+				to := &tt.timeouts[i]
 				if *to == 0 {
 					to = nil
 				}
