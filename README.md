@@ -5,7 +5,7 @@ An implementation of a buffered and unbuffered limiter to control the frequency 
 ## Installation
 
 ```sh
-go get github.com/yisroleshulman/rate
+go get github.com/yisroelshulman/rate
 ```
 
 ## Features
@@ -26,7 +26,7 @@ Once the rate package was installed (verify in the go.mod file) it is ready to b
 // imports
 import (
     "time"
-    "github.com/yisroleshulman/rate"
+    "github.com/yisroelshulman/rate"
 )
 
 
