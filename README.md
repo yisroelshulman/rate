@@ -1,4 +1,4 @@
-# **rate**
+# **rate** [![Go Reference](https://pkg.go.dev/badge/github.com/yisroelshulman/rate.svg)](https://pkg.go.dev/github.com/yisroelshulman/rate)
 
 An implementation of a buffered and unbuffered limiter to control the frequency of operations over time. The limiters will grant or deny permission at the rate provided when creating them.
 
