@@ -1,54 +1,117 @@
-# **request_rate_limiter**
+# **rate**
 
-Limit the number of times a a resource can be used within a given timeframe.
-
-An example use case for a Limiter is when making requests to a server that has a limit of say 100 requests a second. The Limiter can be used to make sure only upto 100 requests are made per second.
+An implementation of a buffered and unbuffered limiter to control the frequency of operations over time. The limiters will grant or deny permission at the rate provided when creating them.
 
 ## Installation
-Download a copy of the limiter.go file and use in your program.
 
-> Note: In the future I might extract the limiter to its own repo where it will be obtainable with a go get ...
+```sh
+go get github.com/yisroleshulman/rate
+```
+
+## Features
+
+- concurrent usage
+- non-concurrent usage
 
 ## Usage
-Once the limiter.go is imported to you program you can make use of the Limiter.
 
-Suppose we have a struct for which we want to impose a limit for its use of a resourse we can do it with a limiter.
+The rate package contains 2 types of limiters:
+- BufferedLimiter
+- UnbufferedLimiter
 
-Create a stuct with a pointer to a Limiter and declare the struct with a *Limiter variable using the NewLimiter function which takes two parameters an int for the limit and a time.Duration for the rate interval.
+While the general functionality is the same they each have some unique behaviors which will be useful depending on what the limiter is needed for.
+
+Once the rate package was installed (verify in the go.mod file) it is ready to be imported for use.
 ```go
-type ItemWithLimiter struct {
-    Limiter *Limiter
-    // other variables...
-}
+// imports
+import (
+    "time"
+    "github.com/yisroleshulman/rate"
+)
 
-func main() {
-    limetedItem := &ItemWithLimiter {
-        Limiter := NewLimiter(100, time.Second)
-        // other variables...
-    }
-}
+
+// declare and initialize the limiters
+var limiter *rate.UnbufferedLimiter
+var bufLimiter *rate.BufferedLimiter
+limiter = NewUnbufferedLimiter(2, time.Second)
+bufLimiter = NewBufferedLimiter(1, 5, time.Second)
+
 ```
-The above code will create a ItemWithLimiter with a limiter that handles 100 uses of some resource/function per second.
 
-To make use of the limiter we can create a receiver on the ItemWithLimiter and call the Limiter.Wait function which takes a pointer to a time.Duration variable, like so.
+The above code will create 2 limiters a *UnbufferedLimiter with a rate of 2 permissions per second, and a *BufferedLimiter with a rate of 1 permission per second and a buffer with a max capacity of 5.
 
+Using the limiters
 ```go
-func (i *ItemWithLimiter) UseResource() error {
-    err := i.Limiter.Wait(nil)
+func main() {
+//... prior code
+
+ err := operation(limiter, timeout)
+ if err != nil {
+    // do something
+ }
+ err = op(bufLimiter, timeout)
+ if err != nil {
+    // do something
+ }
+
+// more code ...
+}
+
+func operation(limiter *rate.UnbufferedLimiter, timeout *time.Duration) error{
+    err := limiter.Wait(timeout)
     if err != nil {
         // request timed out
         return err
     }
-    // access the resource that is time limited
+    doOperation()
+    return nil
+}
+
+func op(limiter *rate.BufferedLimiter, timeout *time.Duration) error {
+    err := limiter.Wait(timeout)
+    if err != nil {
+        switch err.(type) {
+            case *LimiterWaitTimedOut:
+                // do something if needed
+                return err
+            case *LimiterBufferFull:
+                // do something if needed
+                return err
+            default:
+                // something is wrong
+                return someErr
+        }
+    }
+    doOperation()
+    return err
 }
 ```
-The Wait function takes a pointer to a time.Duration parameter which is used when we want the request to use the resource to timeout, by sending nil the request won't time out.
 
-Wait blocks until it received permission to return or errors when it times out. In the above example the Limiter.Wait won't time out.
+It is important to note that Wait(timeout) is a blocking function and only returns when permission is granted or the request error either by timeout or the buffer is full.
 
-> Note: in its current form the limiter DOES NOT GURANTEE any order to which requests will receive permission to access the resource. This can lead to STARVATION and/or race conditions with unintended consiquences.
+Only the UnbufferedLimiter supports non-blocking request.
+
+```go
+func (limiter *UnbufferedLimiter, timeout *time.Duration) {
+    timeRemaining, err := limiter.TryWait(timeout)
+    if err != nil { // the rate has been reached
+        // do something ex.
+        return
+    }
+    doOperation()
+}
+```
+
+The TryWait(timeout) function does not block and returns an error if the limiter has reached the limit and the time remaining until the next permission can be granted.
+
+> Note: Although both limiters can be used for both concurrent and non-concurrent uses it is recommended to use the UnbufferedLimiter for non-concurrent use cases to reduce resource usage. and the BufferdLimiter for concurrent uses to prevent request starvation.
 >
-> In a future version I plan to implement a way where the usage is allocated based on the order the limiter received the request. This might still have race conditions when multiple threads can request access so this should not be used in cases where the threads rely on eachother for information from the limited resource.
+> Since wait is a blocking function calling wait concurrently on a UnbufferedLimiter may lead to request starvation as there is no way to guarantee the order in which permission is granted. And the BufferedLimiter grants permission in the order the requests were put in the buffer. The BufferedLimiter is SUBJECT TO RACE CONDITIONS due to the time delta from the approval and returning from Wait.
+
+## Tests
+
+The tests take < 30 seconds
 
 ## Contributing
-Not accepting ATM
+I consider this project feature complete.
+Reported issued will be looked at for bug fixes.
