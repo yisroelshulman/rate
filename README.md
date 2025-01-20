@@ -115,4 +115,4 @@ The tests take < 30 seconds
 ## Contributing
 I consider this project feature complete.
 
-Reported issued will be looked at for bug fixes.
+Reported issues will be looked at for bug fixes.
