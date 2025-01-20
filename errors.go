@@ -1,28 +1,28 @@
 package rate
 
-// LimiterWaitTimedOut is the error returned when limiter.Wait times out
-type LimiterWaitTimedOut struct {
+// LimiterWaitTimedOutError is the error returned when limiter.Wait times out
+type LimiterWaitTimedOutError struct {
 	message string
 }
 
-func (l *LimiterWaitTimedOut) Error() string {
+func (l *LimiterWaitTimedOutError) Error() string {
 	return l.message
 }
 
-// LimiterOverLimit is the error returned when the unbufferedlimiter.TryWait fails
-type LimiterOverLimit struct {
+// LimiterOverLimitError is the error returned when the unbufferedlimiter.TryWait fails
+type LimiterOverLimitError struct {
 	message string
 }
 
-func (l *LimiterOverLimit) Error() string {
+func (l *LimiterOverLimitError) Error() string {
 	return l.message
 }
 
-// LimiterBufferFull is the error returned when the buffer of the bufferedlimiter is full
-type LimiterBufferFull struct {
+// LimiterBufferFullError is the error returned when the buffer of the bufferedlimiter is full
+type LimiterBufferFullError struct {
 	message string
 }
 
-func (l *LimiterBufferFull) Error() string {
+func (l *LimiterBufferFullError) Error() string {
 	return l.message
 }

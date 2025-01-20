@@ -81,7 +81,7 @@ func (l *BufferedLimiter) Wait(timeout *time.Duration) error {
 		granted: false,
 	}
 	if ok := l.buffer.add(&access); !ok {
-		return &LimiterBufferFull{message: "permission denied: buffer full"}
+		return &LimiterBufferFullError{message: "permission denied: buffer full"}
 	}
 	for {
 		if access.granted {
@@ -99,7 +99,7 @@ func (l *BufferedLimiter) waitWithTimeOut(timeout time.Duration) error {
 		timedOut: false,
 	}
 	if ok := l.buffer.add(&access); !ok {
-		return &LimiterBufferFull{message: "permission denied: buffer full"}
+		return &LimiterBufferFullError{message: "permission denied: buffer full"}
 	}
 	for time.Since(start) < timeout {
 		if access.granted {
@@ -108,5 +108,5 @@ func (l *BufferedLimiter) waitWithTimeOut(timeout time.Duration) error {
 	}
 	access.timedOut = true
 	l.buffer.timedOutSignal()
-	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
+	return &LimiterWaitTimedOutError{message: "permission denied: timed out"}
 }

@@ -74,7 +74,7 @@ func (l *UnbufferedLimiter) waitWithTimeout(timeout time.Duration) error {
 		}
 		time.Sleep(remaining)
 	}
-	return &LimiterWaitTimedOut{message: "permission denied: timed out"}
+	return &LimiterWaitTimedOutError{message: "permission denied: timed out"}
 }
 
 // TryWait returns whether or not the Unbufferedlimiter granted permission.
@@ -93,5 +93,5 @@ func (l *UnbufferedLimiter) TryWait() (time.Duration, error) {
 		l.index = incrementIndex(l.index, len(l.timeStamps))
 		return 0, nil
 	}
-	return remaining, &LimiterOverLimit{message: "permission denied: limit reached"}
+	return remaining, &LimiterOverLimitError{message: "permission denied: limit reached"}
 }

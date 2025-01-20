@@ -71,10 +71,10 @@ func op(limiter *rate.BufferedLimiter, timeout *time.Duration) error {
     err := limiter.Wait(timeout)
     if err != nil {
         switch err.(type) {
-            case *LimiterWaitTimedOut:
+            case *LimiterWaitTimedOutError:
                 // do something if needed
                 return err
-            case *LimiterBufferFull:
+            case *LimiterBufferFullError:
                 // do something if needed
                 return err
             default:
